@@ -5,28 +5,87 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
     <title>Your Website</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
-
 <!-- Container for the navigation bar -->
 <div id="navbar-container"></div>
 <!-- Include the script to load the navigation bar -->
 <script src="/static/navbar.js"></script>
 
-<header>
-    <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/page1">Page 1</a></li>
-            <li><a href="/page2">Page 2</a></li>
-        </ul>
-    </nav>
-</header>
+User<input id="username"><br>
+password<input id="password"><br>
+role type:
+    <select id="role">
+     <option value="0">user (cant add a book)</option>
+     <option value="1" selected>manager</option>
+<input type="file" id="fileInput"><br>
+<button onclick="login()">Login</button>
+<button onclick="logout()">Logout</button>
+<button onclick="register()">register</button>
+<hr>
 
-<section class="content">
-    <h1>Welcome to Your Website!</h1>
-    <p>This is the main page content.</p>
-</section>
+    </select>
+    <div id="gret">Welcome</div>
+    <div id="uimage">image</div>
+    <h1>Car details</h1>
+    name<input id="clrrrr"><br>
+    riter<input id="brand"><br>
+    date <input id="model" ><br>
+    <button onclick="addCar()">Ad a book</button>
+    <script>
+        const MY_SERVER = "http://127.0.0.1:5000"
+
+        const addCar = async () => {
+            console.log(clrrrr.value,brand.value,model.value);
+
+            token = sessionStorage.getItem("access_token")
+            axios.post(`${MY_SERVER}/addbook`, { color: clrrrr.value, brand: brand.value,model:model.value }, {
+                headers: {
+                    Authorization: `Bearer ${token}` // Include the token in the Authorization header
+                }
+            }).then(res => console.log(res.data))
+        }
+
+        const login = async () => {
+            res = await axios.post(`${MY_SERVER}/login`, { username: username.value, password: password.value })
+            console.log(res.data);
+            uimage.innerHTML = `<img src=${res.data.image_url}>`
+            gret.innerHTML = "<h1>Welcome mr. " + res.data.username
+            sessionStorage.setItem("access_token", res.data.access_token)
+        }
+        const logout = () => {
+            sessionStorage.setItem("access_token", "")
+        }
+        const register = async () => {
+            try {
+                const fileInput = document.getElementById('fileInput');
+                const file = fileInput.files[0];
+
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('username', username.value);
+                formData.append('password', password.value);
+                formData.append('role', role.value);
+
+                const config = {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                };
+
+                const res = await axios.post(`${MY_SERVER}/register`, formData, config);
+                console.log(res.data);
+                sessionStorage.setItem("access_token", res.data.access_token);
+            } catch (error) {
+                console.error('Error during registration:', error);
+            }
+        };
+
+
+        </script>
+
+
 
 
 </body>
