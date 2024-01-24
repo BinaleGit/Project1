@@ -29,18 +29,19 @@ role type:
     <div id="gret">Welcome</div>
     <div id="uimage">image</div>
     <h1>Car details</h1>
-    name<input id="clrrrr"><br>
-    riter<input id="brand"><br>
-    date <input id="model" ><br>
-    <button onclick="addCar()">Ad a book</button>
+    name<input id="name"><br>
+    riter<input id="riter"><br>
+    date <input id="date" ><br>
+    <button onclick="addBook()">Ad a book</button>
+    <ul id="booksList"></ul>
     <script>
         const MY_SERVER = "http://127.0.0.1:5000"
 
-        const addCar = async () => {
-            console.log(clrrrr.value,brand.value,model.value);
+        const addBook = async () => {
+            console.log(name.value,riter.value,date.value);
 
             token = sessionStorage.getItem("access_token")
-            axios.post(`${MY_SERVER}/addbook`, { color: clrrrr.value, brand: brand.value,model:model.value }, {
+            axios.post(`${MY_SERVER}/addbook`, { name: name.value, riter: riter.value ,date :date.value }, {
                 headers: {
                     Authorization: `Bearer ${token}` // Include the token in the Authorization header
                 }
@@ -81,7 +82,45 @@ role type:
                 console.error('Error during registration:', error);
             }
         };
+        
+        const getcars = async () => {
+    try {
+        const token = sessionStorage.getItem("access_token");
 
+        if (!token) {
+            console.error("Access token is missing");
+            return;
+        }
+
+        const response = await axios.get(`${MY_SERVER}/getcars`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = response.data;
+        const booksList = document.getElementById('booksList');
+
+        // Clear existing content in the booksList div
+        booksList.innerHTML = '';
+
+        if (data.books && data.books.length > 0) {
+            data.books.forEach(book => {
+                const li = document.createElement('li');
+                li.textContent = `${book.name} by ${book.riter} - ${book.date}`;
+                booksList.appendChild(li);
+            });
+        } else {
+            const li = document.createElement('li');
+            li.textContent = 'No books available.';
+            booksList.appendChild(li);
+        }
+
+    } catch (error) {
+        console.error('Error:', error);
+    }
+};
 
         </script>
 
