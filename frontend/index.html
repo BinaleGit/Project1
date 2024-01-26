@@ -29,24 +29,264 @@ role type:
     <div id="gret">Welcome</div>
     <div id="uimage">image</div>
     <h1>Car details</h1>
-    name<input id="name"><br>
+    name<input id="book_name"><br>
     riter<input id="riter"><br>
     date <input id="date" ><br>
     <button onclick="addBook()">Ad a book</button>
-    <ul id="booksList"></ul>
+    <button onclick="deleteBook()">Delete a Book</button>
+    <button onclick="getBooks()">books!</button>
+    <button onclick="getUsers()">users</button>
+    <div id="booksContainer">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Writer</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="booksTableBody"></tbody>
+        </table>
+    </div>
+
+    <br>
+    <div id="usersContainer">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+        </table>
+    </div>
+
     <script>
         const MY_SERVER = "http://127.0.0.1:5000"
 
         const addBook = async () => {
-            console.log(name.value,riter.value,date.value);
+            console.log(book_name.value,riter.value,date.value);
 
             token = sessionStorage.getItem("access_token")
-            axios.post(`${MY_SERVER}/addbook`, { name: name.value, riter: riter.value ,date :date.value }, {
+            axios.post(`${MY_SERVER}/addbook`, { book_name: book_name.value, riter: riter.value ,date :date.value }, {
                 headers: {
                     Authorization: `Bearer ${token}` // Include the token in the Authorization header
                 }
             }).then(res => console.log(res.data))
         }
+
+        const deleteBook = async (bookId) => {
+    token = sessionStorage.getItem("access_token");
+
+    try {
+        const response = await axios.delete(`${MY_SERVER}/deletebook/${bookId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        console.log(response.data);
+        // Handle the response as needed
+    } catch (error) {
+        console.error("Error deleting book:", error.response ? error.response.data : error.message);
+        // Handle the error accordingly
+    }
+};
+
+const getBooks = async () => {
+            try {
+                const token = sessionStorage.getItem("access_token");
+                const response = await axios.get(`${MY_SERVER}/getbooks`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                const booksList = response.data.books;
+                updateBooksTable(booksList);
+
+            } catch (error) {
+                console.error("Error fetching books:", error.response ? error.response.data : error.message);
+                // Handle the error accordingly
+            }
+        };
+
+        const updateBooksTable = (booksList) => {
+    const booksTableBody = document.getElementById("booksTableBody");
+
+    // Clear the existing content
+    booksTableBody.innerHTML = "";
+
+    // Create and append new rows for each book
+    booksList.forEach(book => {
+        const row = booksTableBody.insertRow();
+
+        // Add cells for book properties
+        
+
+        const bookNameCell = row.insertCell(0);
+        bookNameCell.textContent = book.book_name;
+
+        const riterCell = row.insertCell(1);
+        riterCell.textContent = book.riter;
+
+        const dateCell = row.insertCell(2);
+        dateCell.textContent = book.date;
+
+        const lendInfoCell = row.insertCell(3);
+        if (book.lend_info) {
+            lendInfoCell.textContent = `Lent to ${book.username}`;
+        } else {
+            lendInfoCell.textContent = 'Not Lent';
+        }
+
+        // Add cell for lending button
+        const lendButtonCell = row.insertCell(4);
+        const lendButton = document.createElement("button");
+        lendButton.textContent = "Lend";
+        lendButton.onclick = () => lendBook(book.user_id, book.book_id);
+        lendButtonCell.appendChild(lendButton);
+    });
+};
+
+
+        const updateBook = (bookId) => {
+    // Assuming you have a form with id "updateBookForm" in your HTML
+    const updateForm = document.getElementById("updateBookForm");
+
+    // Get the book details from the user or retrieve them from the existing data
+    const updatedName = prompt("Enter updated book name:");
+    const updatedRiter = prompt("Enter updated writer:");
+    const updatedDate = prompt("Enter updated date:");
+
+    const token = sessionStorage.getItem("access_token");
+
+    axios.put(`${MY_SERVER}/updatebook/${bookId}`, {
+        name: updatedName,
+        riter: updatedRiter,
+        date: updatedDate
+    }, {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    }).then(response => {
+        console.log(response.data);
+        // Refresh the book list after updating
+        getBooks();
+    }).catch(error => {
+        console.error("Error updating book:", error.response ? error.response.data : error.message);
+        // Handle the error accordingly
+    });
+
+};
+
+// const lendBook = async (userId, bookId) => {     //// not working ///
+//     try {
+//         const token = sessionStorage.getItem("access_token");
+//         const response = await axios.post(`${MY_SERVER}/lendbook`, { user_id: userId, book_id: bookId }, {
+//             headers: {
+//                 Authorization: `Bearer ${token}`
+//             }
+//         });
+
+//         console.log(response.data);
+//         // Refresh the books list after lending
+//         getBooks();
+
+//     } catch (error) {
+//         console.error("Error lending book:", error.response ? error.response.data : error.message);
+//         // Handle the error accordingly
+//     }
+// };
+
+
+
+const getUsers = async () => {
+            try {
+                const token = sessionStorage.getItem("access_token");
+                const response = await axios.get(`${MY_SERVER}/getusers`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                const usersList = response.data.users;
+                updateUsersTable(usersList);
+
+            } catch (error) {
+                console.error("Error fetching users:", error.response ? error.response.data : error.message);
+                // Handle the error accordingly
+            }
+        };
+
+        const updateUsersTable = (usersList) => {
+            const usersTableBody = document.getElementById("usersTableBody");
+
+            // Clear the existing content
+            usersTableBody.innerHTML = "";
+
+            // Create and append new rows for each user
+            usersList.forEach(user => {
+                const row = usersTableBody.insertRow();
+
+                // Add cells for user properties
+                const usernameCell = row.insertCell(0);
+                usernameCell.textContent = user.username;
+
+                const passwordCell = row.insertCell(1);
+                passwordCell.textContent = user.password; // Note: You might want to hide or mask the password for security reasons
+
+                const roleCell = row.insertCell(2);
+                roleCell.textContent = user.role;
+
+                // Add cell for actions (delete and update buttons)
+                const actionsCell = row.insertCell(3);
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Delete";
+                deleteButton.onclick = () => deleteUser(user.id);
+                actionsCell.appendChild(deleteButton);
+
+                const updateButton = document.createElement("button");
+                updateButton.textContent = "Update";
+                updateButton.onclick = () => updateUser(user.id);
+                actionsCell.appendChild(updateButton);
+            });
+        };
+
+        const deleteUser = async (userId) => {
+            try {
+                const token = sessionStorage.getItem("access_token");
+                await axios.delete(`${MY_SERVER}/deleteuser/${userId}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+
+                // Refresh the user list after deletion
+                getUsers();
+
+            } catch (error) {
+                console.error("Error deleting user:", error.response ? error.response.data : error.message);
+                // Handle the error accordingly
+            }
+        };
+
+        const updateUser = (userId) => {
+            // Implement the update functionality as needed
+            console.log(`Update user with ID ${userId}`);
+        };
+
+
+
+
+
+
+
+
 
         const login = async () => {
             res = await axios.post(`${MY_SERVER}/login`, { username: username.value, password: password.value })
@@ -83,44 +323,6 @@ role type:
             }
         };
         
-        const getcars = async () => {
-    try {
-        const token = sessionStorage.getItem("access_token");
-
-        if (!token) {
-            console.error("Access token is missing");
-            return;
-        }
-
-        const response = await axios.get(`${MY_SERVER}/getcars`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = response.data;
-        const booksList = document.getElementById('booksList');
-
-        // Clear existing content in the booksList div
-        booksList.innerHTML = '';
-
-        if (data.books && data.books.length > 0) {
-            data.books.forEach(book => {
-                const li = document.createElement('li');
-                li.textContent = `${book.name} by ${book.riter} - ${book.date}`;
-                booksList.appendChild(li);
-            });
-        } else {
-            const li = document.createElement('li');
-            li.textContent = 'No books available.';
-            booksList.appendChild(li);
-        }
-
-    } catch (error) {
-        console.error('Error:', error);
-    }
-};
 
         </script>
 
