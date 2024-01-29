@@ -98,24 +98,24 @@ role type:
 };
 
 const getBooks = async () => {
-            try {
-                const token = sessionStorage.getItem("access_token");
-                const response = await axios.get(`${MY_SERVER}/getbooks`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-
-                const booksList = response.data.books;
-                updateBooksTable(booksList);
-
-            } catch (error) {
-                console.error("Error fetching books:", error.response ? error.response.data : error.message);
-                // Handle the error accordingly
+    try {
+        const token = sessionStorage.getItem("access_token");
+        const response = await axios.get(`${MY_SERVER}/getbooks`, {
+            headers: {
+                Authorization: `Bearer ${token}`
             }
-        };
+        });
 
-        const updateBooksTable = (booksList) => {
+        const booksList = response.data.books;
+        updateBooksTable(booksList);
+
+    } catch (error) {
+        console.error("Error fetching books:", error.response ? error.response.data : error.message);
+        // Handle the error accordingly
+    }
+};
+
+const updateBooksTable = (booksList) => {
     const booksTableBody = document.getElementById("booksTableBody");
 
     // Clear the existing content
@@ -126,8 +126,6 @@ const getBooks = async () => {
         const row = booksTableBody.insertRow();
 
         // Add cells for book properties
-        
-
         const bookNameCell = row.insertCell(0);
         bookNameCell.textContent = book.book_name;
 
@@ -137,21 +135,18 @@ const getBooks = async () => {
         const dateCell = row.insertCell(2);
         dateCell.textContent = book.date;
 
-        const lendInfoCell = row.insertCell(3);
-        if (book.lend_info) {
-            lendInfoCell.textContent = `Lent to ${book.username}`;
-        } else {
-            lendInfoCell.textContent = 'Not Lent';
-        }
+        // const lendStatusCell = row.insertCell(3);
+        // lendStatusCell.textContent = book.lend ? 'Lent' : 'Not Lent';
 
         // Add cell for lending button
-        const lendButtonCell = row.insertCell(4);
+        const lendButtonCell = row.insertCell();
         const lendButton = document.createElement("button");
         lendButton.textContent = "Lend";
         lendButton.onclick = () => lendBook(book.user_id, book.book_id);
         lendButtonCell.appendChild(lendButton);
     });
 };
+
 
 
         const updateBook = (bookId) => {
@@ -184,24 +179,25 @@ const getBooks = async () => {
 
 };
 
-// const lendBook = async (userId, bookId) => {     //// not working ///
-//     try {
-//         const token = sessionStorage.getItem("access_token");
-//         const response = await axios.post(`${MY_SERVER}/lendbook`, { user_id: userId, book_id: bookId }, {
-//             headers: {
-//                 Authorization: `Bearer ${token}`
-//             }
-//         });
+const lendBook = async (userId, bookId) => {
+    try {
+        const token = sessionStorage.getItem("access_token");
+        const response = await axios.post(`${MY_SERVER}/lendbook`, { user_id: userId, book_id: bookId }, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
 
-//         console.log(response.data);
-//         // Refresh the books list after lending
-//         getBooks();
+        console.log(response.data);
+        // Refresh the books list after lending
+        getBooks();
 
-//     } catch (error) {
-//         console.error("Error lending book:", error.response ? error.response.data : error.message);
-//         // Handle the error accordingly
-//     }
-// };
+    } catch (error) {
+        console.error("Error lending book:", error.response ? error.response.data : error.message);
+        // Handle the error accordingly
+    }
+};
+
 
 
 

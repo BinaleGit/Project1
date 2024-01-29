@@ -36,17 +36,23 @@ class User(db.Model):
         role = db.Column(db.String(100), nullable=False)
 
 class Book(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
-        name = db.Column(db.String(100), nullable=False)
-        riter = db.Column(db.String(100), nullable=False)
-        date = db.Column(db.String(100), nullable=False)
-        userid = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-        user = db.relationship('User', backref=db.backref('books', lazy=True))
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    riter = db.Column(db.String(100), nullable=False)
+    date = db.Column(db.String(100), nullable=False)
+    lend = db.Column(db.Boolean, default=False)  # Check this line
+    userid = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user = db.relationship('User', backref=db.backref('books', lazy=True))
+
 
 class Lend(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user = db.relationship("User", backref="lends")
+    book_id = db.Column(db.Integer, db.ForeignKey("book.id"), nullable=False)
+    book = db.relationship("Book", backref="lends")
+    borrowed_at = db.Column(db.DateTime, nullable=False)
+
 
 def generate_token(user_id):
         expiration = int(time.time()) + 3600  # Set the expiration time to 1 hour from the current time
@@ -142,6 +148,20 @@ def addbook():
         return jsonify({'message': 'Car created successfully'}), 201
 
 
+@app.route('/getbooks', methods=['GET'])
+def get_books():
+    try:
+        # Fetch all books from the database
+        books = Book.query.all()
+
+        # Convert the book data to a list of dictionaries
+        books_list = [{'book_id': book.id, 'book_name': book.name, 'riter': book.riter, 'date': book.date, 'lend': book.lend} for book in books]
+
+        return jsonify({'books': books_list}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/deletebook/<int:book_id>', methods=['DELETE'])
 @jwt_required()
 def delete_book(book_id):
@@ -197,35 +217,37 @@ def register():
         return jsonify({'message': 'User created successfully'}), 201
 
 
-# def lend_book():     ####   not working ####
-#     try:
-#         user_id = request.form.get('user_id')
-#         book_id = request.form.get('book_id')
+@app.route('/lendbook', methods=['POST'])
+@jwt_required()
+def lend_book():
+    try:
+        user_id = get_jwt_identity()
+        book_id = request.json.get('book_id')
 
-#         # Check if the user or book exists
-#         user = User.query.get(user_id)
-#         book = Book.query.get(book_id)
+        # Check if user and book exist
+        user = User.query.get(user_id)
+        book = Book.query.get(book_id)
+        if not user or not book:
+            return jsonify({'error': 'Invalid user or book'}), 404
 
-#         if not user:
-#             return jsonify({'error': f'User with ID {user_id} not found'}), 404
+        # Check if book is already lent
+        if book.lend:
+            return jsonify({'error': 'Book is already lent'}), 409
 
-#         if not book:
-#             return jsonify({'error': f'Book with ID {book_id} not found'}), 404
+        # Create new Lend record
+        lend = Lend(user_id=user_id, book_id=book_id, borrowed_at=datetime.now())
+        db.session.add(lend)
 
-#         # Check if the user has already lent a book
-#         existing_lend = Lend.query.filter_by(user_id=user_id).first()
-#         if existing_lend:
-#             return jsonify({'error': 'User has already lent a book'}), 400
+        # Optionally set book.lend to True
+        book.lend = True
+        db.session.commit()
 
-#         # Create a new lending record
-#         lend = Lend(user_id=user_id, book_id=book_id)
-#         db.session.add(lend)
-#         db.session.commit()
+        return jsonify({'message': 'Book lent successfully'}), 201
 
-#         return jsonify({'message': 'Book lent successfully'}), 201
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
+
 
 
 
@@ -260,41 +282,6 @@ def update_book(book_id):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/getbooks', methods=['GET'])
-def get_books_with_lending():
-    try:
-        books = Book.query.all()
-        books_list = []
-
-        for book in books:
-            lend_info = Lend.query.filter_by(book_id=book.id).first()
-
-            if lend_info:
-                user = User.query.get(lend_info.user_id)
-                lend_info_dict = {
-                    'lend_id': lend_info.id,
-                    'user_id': lend_info.user_id,
-                    'username': user.username,
-                    'book_id': lend_info.book_id,
-                    'book_name': book.name,
-                    'riter': book.riter,
-                    'date': book.date,
-                }
-                books_list.append(lend_info_dict)
-            else:
-                book_info = {
-                    'book_id': book.id,
-                    'book_name': book.name,
-                    'riter': book.riter,
-                    'date': book.date,
-                    'lend_info': None
-                }
-                books_list.append(book_info)
-
-        return jsonify({'books': books_list}), 200
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/getusers', methods=['GET'])
 def get_users():
