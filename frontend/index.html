@@ -33,7 +33,6 @@ role type:
     riter<input id="riter"><br>
     date <input id="date" ><br>
     <button onclick="addBook()">Ad a book</button>
-    <button onclick="deleteBook()">Delete a Book</button>
     <button onclick="getBooks()">books!</button>
     <button onclick="getUsers()">users</button>
     <div id="booksContainer">
@@ -43,7 +42,10 @@ role type:
                     <th>Name</th>
                     <th>Writer</th>
                     <th>Date</th>
-                    <th>Actions</th>
+                    <th>Lend?</th>
+                    <th>Delete</th>
+                    <th>Update</th>
+                    <th>Return?</th>
                 </tr>
             </thead>
             <tbody id="booksTableBody"></tbody>
@@ -69,33 +71,33 @@ role type:
         const MY_SERVER = "http://127.0.0.1:5000"
 
         const addBook = async () => {
-            console.log(book_name.value,riter.value,date.value);
+    const bookName = document.getElementById("book_name").value;
+    const riter = document.getElementById("riter").value;
+    const date = document.getElementById("date").value;
 
-            token = sessionStorage.getItem("access_token")
-            axios.post(`${MY_SERVER}/addbook`, { book_name: book_name.value, riter: riter.value ,date :date.value }, {
-                headers: {
-                    Authorization: `Bearer ${token}` // Include the token in the Authorization header
-                }
-            }).then(res => console.log(res.data))
-        }
-
-        const deleteBook = async (bookId) => {
-    token = sessionStorage.getItem("access_token");
+    const token = sessionStorage.getItem("access_token");
 
     try {
-        const response = await axios.delete(`${MY_SERVER}/deletebook/${bookId}`, {
-            headers: {
-                Authorization: `Bearer ${token}`
+        const response = await axios.post(
+            `${MY_SERVER}/addbook`,
+            { book_name: bookName, riter: riter, date: date },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json', // Set Content-Type header
+                },
             }
-        });
+        );
 
         console.log(response.data);
-        // Handle the response as needed
+        // Handle the response as needed (e.g., show a success message, update UI, etc.)
+
     } catch (error) {
-        console.error("Error deleting book:", error.response ? error.response.data : error.message);
-        // Handle the error accordingly
+        console.error("Error adding book:", error.response ? error.response.data : error.message);
+        // Handle the error accordingly (e.g., show an error message)
     }
 };
+
 
 const getBooks = async () => {
     try {
@@ -129,24 +131,88 @@ const updateBooksTable = (booksList) => {
         const bookNameCell = row.insertCell(0);
         bookNameCell.textContent = book.book_name;
 
-        const riterCell = row.insertCell(1);
-        riterCell.textContent = book.riter;
+        const writerCell = row.insertCell(1);
+        writerCell.textContent = book.riter;
 
         const dateCell = row.insertCell(2);
         dateCell.textContent = book.date;
 
-        // const lendStatusCell = row.insertCell(3);
-        // lendStatusCell.textContent = book.lend ? 'Lent' : 'Not Lent';
+        const lendStatusCell = row.insertCell(3);
+        lendStatusCell.textContent = book.lend ? 'Lent' : 'Not Lent';
+
+        // Add cell for delete button
+        const deleteButtonCell = row.insertCell(4);
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.onclick = () => deleteBook(book.book_id);
+        deleteButtonCell.appendChild(deleteButton);
 
         // Add cell for lending button
-        const lendButtonCell = row.insertCell();
+        const lendButtonCell = row.insertCell(5);
         const lendButton = document.createElement("button");
         lendButton.textContent = "Lend";
-        lendButton.onclick = () => lendBook(book.user_id, book.book_id);
+        if (book.lend_info) {
+            lendButton.disabled = true;  // Disable lending button for lent books
+        } else {
+            lendButton.onclick = () => lendBook(book.book_id);
+        }
         lendButtonCell.appendChild(lendButton);
+
+        // Add cell for returning button
+        const returnButtonCell = row.insertCell(6);
+        const returnButton = document.createElement("button");
+        returnButton.textContent = "Return";
+
+        // Check if the book is currently lent
+        if (book.lend) {
+            returnButton.onclick = () => returnBook(book.book_id);
+        } else {
+            returnButton.disabled = true;  // Disable return button for books that are not lent
+        }
+
+        returnButtonCell.appendChild(returnButton);
     });
 };
 
+const deleteBook = async (bookId) => {
+    const token = sessionStorage.getItem("access_token");
+
+    try {
+        const response = await axios.delete(`${MY_SERVER}/deletebook/${bookId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        console.log(response.data);
+        // Refresh the books list after deletion
+        getBooks();
+    } catch (error) {
+        console.error("Error deleting book:", error.response ? error.response.data : error.message);
+        // Handle the error accordingly
+    }
+};
+
+
+
+const returnBook = async (lendId) => {
+    const token = sessionStorage.getItem("access_token");
+
+    try {
+        const response = await axios.post(`${MY_SERVER}/returnbook/${lendId}`, null, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+
+        console.log(response.data);
+        // Refresh the books list after returning
+        getBooks();
+    } catch (error) {
+        console.error("Error returning book:", error.response ? error.response.data : error.message);
+        // Handle the error accordingly
+    }
+};
 
 
         const updateBook = (bookId) => {
@@ -179,24 +245,31 @@ const updateBooksTable = (booksList) => {
 
 };
 
-const lendBook = async (userId, bookId) => {
+const lendBook = async (bookId) => {
+    const token = sessionStorage.getItem("access_token");
+console.log(token);
     try {
-        const token = sessionStorage.getItem("access_token");
-        const response = await axios.post(`${MY_SERVER}/lendbook`, { user_id: userId, book_id: bookId }, {
-            headers: {
-                Authorization: `Bearer ${token}`
+        const response = await axios.post(
+            `${MY_SERVER}/lendbook`,
+            { book_id: bookId },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
             }
-        });
+        );
 
         console.log(response.data);
-        // Refresh the books list after lending
-        getBooks();
+        // Handle the response as needed (e.g., show a success message, update UI, etc.)
+        // You might want to refresh the books list or update the specific book's status in the UI.
 
     } catch (error) {
         console.error("Error lending book:", error.response ? error.response.data : error.message);
-        // Handle the error accordingly
+        // Handle the error accordingly (e.g., show an error message)
     }
 };
+
 
 
 
@@ -254,22 +327,24 @@ const getUsers = async () => {
         };
 
         const deleteUser = async (userId) => {
-            try {
-                const token = sessionStorage.getItem("access_token");
-                await axios.delete(`${MY_SERVER}/deleteuser/${userId}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-
-                // Refresh the user list after deletion
-                getUsers();
-
-            } catch (error) {
-                console.error("Error deleting user:", error.response ? error.response.data : error.message);
-                // Handle the error accordingly
+    try {
+        const token = sessionStorage.getItem("access_token");
+        const response = await axios.delete(`${MY_SERVER}/deleteuser/${userId}`, {
+            headers: {
+                Authorization: `Bearer ${token}`
             }
-        };
+        });
+
+        console.log(response.data.message);  // Log the server response message
+        // Refresh the user list after deletion
+        getUsers();
+    } catch (error) {
+        console.error("Error deleting user:", error.response ? error.response.data : error.message);
+        // Handle the error accordingly
+    }
+};
+
+
 
         const updateUser = (userId) => {
             // Implement the update functionality as needed

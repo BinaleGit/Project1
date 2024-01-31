@@ -129,23 +129,30 @@ def uploaded_file(filename):
 
 
 @app.route('/addbook', methods=['POST'])
-@jwt_required() 
+@jwt_required()
 def addbook():
-        request_data = request.get_json()
-        print(request_data)
+    # Get the user's identity and role
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
 
-        name = request_data['book_name']
-        riter = request_data['riter']
-        date = request_data['date']
-        userid = get_jwt_identity() # need 2 take from token
-        print(userid)
-        # print( get_jwt_identity())
+    # Check if the current user has the role "manager" (value 1)
+    if current_user.role != 1:
+        return jsonify({'error': 'Only managers are allowed to delete books'}), 403
+    
+    request_data = request.get_json()
+    print(request_data)
 
-        # Create a new user and add to the database
-        new_book = Book(name=name, riter=riter,date=date,userid=userid)
-        db.session.add(new_book)
-        db.session.commit()
-        return jsonify({'message': 'Car created successfully'}), 201
+    name = request_data['book_name']
+    riter = request_data['riter']
+    date = request_data['date']
+    userid = get_jwt_identity()
+
+    # Create a new book and add to the database
+    new_book = Book(name=name, riter=riter, date=date, userid=userid)
+    db.session.add(new_book)
+    db.session.commit()
+
+    return jsonify({'message': 'Book created successfully'}), 201
 
 
 @app.route('/getbooks', methods=['GET'])
@@ -165,6 +172,13 @@ def get_books():
 @app.route('/deletebook/<int:book_id>', methods=['DELETE'])
 @jwt_required()
 def delete_book(book_id):
+    # Get the user's identity and role
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+
+    # Check if the current user has the role "manager" (value 1)
+    if current_user.role != 1:
+        return jsonify({'error': 'Only managers are allowed to delete books'}), 403
     # Ensure that the user deleting the book is the owner of the book
     userid = get_jwt_identity()
     book_to_delete = Book.query.filter_by(id=book_id, userid=userid).first()
@@ -255,6 +269,13 @@ def lend_book():
 @app.route('/updatebook/<int:book_id>', methods=['PUT'])
 @jwt_required()
 def update_book(book_id):
+    # Get the user's identity and role
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+
+    # Check if the current user has the role "manager" (value 1)
+    if current_user.role != 1:
+        return jsonify({'error': 'Only managers are allowed to delete books'}), 403
     try:
         userid = get_jwt_identity()
         book_to_update = Book.query.filter_by(id=book_id, userid=userid).first()
@@ -282,6 +303,27 @@ def update_book(book_id):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/returnbook/<int:lend_id>', methods=['POST'])
+@jwt_required()
+def return_book(lend_id):
+    try:
+        current_user_id = get_jwt_identity()
+
+        # Check if the lending record exists and the user is the borrower
+        lend_record = Lend.query.filter_by(id=lend_id, user_id=current_user_id).first()
+        if not lend_record:
+            return jsonify({'error': 'Lending record not found or user does not have permission to return'}), 404
+
+        # Update the book's lend status and remove the lending record
+        book = lend_record.book
+        book.lend = False
+        db.session.delete(lend_record)
+        db.session.commit()
+
+        return jsonify({'message': 'Book returned successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/getusers', methods=['GET'])
 def get_users():
@@ -296,6 +338,34 @@ def get_users():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500  
+
+from flask import jsonify, make_response
+
+# ...
+
+@app.route('/deleteuser/<int:user_id>', methods=['DELETE'])
+@jwt_required()
+def delete_user(user_id):
+    # Get the current user's role
+    current_user_id = get_jwt_identity()
+    current_user = User.query.get(current_user_id)
+
+    # Check if the current user has the role "manager" (value 1)
+    if current_user.role != 1:
+        return jsonify({'error': 'Only managers are allowed to delete books'}), 403
+
+    # Ensure the user to be deleted exists
+    user_to_delete = User.query.get(user_id)
+    if not user_to_delete:
+        return jsonify({'error': 'User not found'}), 404
+
+    # Delete the user from the database
+    db.session.delete(user_to_delete)
+    db.session.commit()
+
+    return jsonify({'message': 'User deleted successfully'}), 200
+
+
 
 if __name__ == '__main__':
         with app.app_context():
