@@ -4,146 +4,67 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/style.css">
-    <style>
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-        }
-
-        #navbar-container {
-            background-color: #333;
-            padding: 10px;
-            color: #fff;
-            text-align: center;
-        }
-
-        #container {
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        input,
-        select,
-        button {
-            margin-bottom: 10px;
-        }
-
-        button {
-            padding: 10px;
-            background-color: #333;
-            color: #fff;
-            border: none;
-            cursor: pointer;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 10px;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-
-        th {
-            background-color: #333;
-            color: #fff;
-        }
-
-        #gret, #uimage {
-            margin-top: 20px;
-        }
-    </style>
+    <title>Your Website</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <body>
-    <!-- Container for the navigation bar -->
-    <div id="navbar-container"></div>
-    <!-- Include the script to load the navigation bar -->
-    <script src="/static/navbar.js"></script>
+<!-- Container for the navigation bar -->
+<div id="navbar-container"></div>
+<!-- Include the script to load the navigation bar -->
+<script src="/static/navbar.js"></script>
 
-    <div id="container">
-        <label for="username">User</label>
-        <input id="username"><br>
+User<input id="username"><br>
+password<input id="password"><br>
+role type:
+    <select id="role">
+     <option value="0">user (cant add a book)</option>
+     <option value="1" selected>manager</option>
+<input type="file" id="fileInput"><br>
+<button onclick="login()">Login</button>
+<button onclick="logout()">Logout</button>
+<button onclick="register()">register</button>
+<hr>
 
-        <label for="password">Password</label>
-        <input id="password"><br>
+    </select>
+    <div id="gret">Welcome</div>
+    <div id="uimage">image</div>
+    <h1>Car details</h1>
+    name<input id="book_name"><br>
+    riter<input id="riter"><br>
+    date <input id="date" ><br>
+    <button onclick="addBook()">Ad a book</button>
+    <button onclick="getBooks()">books!</button>
+    <button onclick="getUsers()">users</button>
+    <div id="booksContainer">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Writer</th>
+                    <th>Date</th>
+                    <th>Lend?</th>
+                    <th>Delete</th>
+                    <th>Update</th>
+                    <th>Return?</th>
+                </tr>
+            </thead>
+            <tbody id="booksTableBody"></tbody>
+        </table>
+    </div>
 
-        <label for="role">Role Type:</label>
-        <select id="role">
-            <option value="0">User (Can't add a book)</option>
-            <option value="1" selected>Manager</option>
-        </select><br>
-
-        <label for="fileInput">Image:</label>
-        <input type="file" id="fileInput"><br>
-
-        <button onclick="login()">Login</button>
-        <button onclick="logout()">Logout</button>
-        <button onclick="register()">Register</button>
-        <hr>
-
-        <div id="gret">Welcome</div>
-        <div id="uimage">Image</div>
-
-        <h1>Book Details</h1>
-        <label for="book_name">Name</label>
-        <input id="book_name"><br>
-
-        <label for="riter">Writer</label>
-        <input id="riter"><br>
-
-        <label for="date">Date</label>
-        <input id="date"><br>
-
-        <button onclick="addBook()">Add a Book</button>
-        <button onclick="getBooks()">Books</button>
-        <button onclick="getUsers()">Users</button>
-
-        <div id="booksContainer">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Writer</th>
-                        <th>Date</th>
-                        <th>Lend?</th>
-                        <th>Delete</th>
-                        <th>Update</th>
-                        <th>Return?</th>
-                    </tr>
-                </thead>
-                <tbody id="booksTableBody"></tbody>
-            </table>
-        </div>
-
-        <br>
-
-        <div id="usersContainer">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Username</th>
-                        <th>Password</th>
-                        <th>Role</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="usersTableBody"></tbody>
-            </table>
-        </div>
+    <br>
+    <div id="usersContainer">
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Password</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+        </table>
     </div>
 
     <script>
@@ -230,7 +151,8 @@ const updateBooksTable = (booksList) => {
         const lendButtonCell = row.insertCell(5);
         const lendButton = document.createElement("button");
         lendButton.textContent = "Lend";
-        if (book.lend_info) {
+         // Check if the book is already lent
+         if (book.lend) {
             lendButton.disabled = true;  // Disable lending button for lent books
         } else {
             lendButton.onclick = () => lendBook(book.book_id);

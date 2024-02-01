@@ -9,6 +9,7 @@ import jwt
 from flask_bcrypt import Bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 from werkzeug.utils import secure_filename
+import time
 
 app = Flask(__name__)
 app.secret_key = 'secret_secret_key'
@@ -52,6 +53,8 @@ class Lend(db.Model):
     book_id = db.Column(db.Integer, db.ForeignKey("book.id"), nullable=False)
     book = db.relationship("Book", backref="lends")
     borrowed_at = db.Column(db.DateTime, nullable=False)
+
+    
 
 
 def generate_token(user_id):
@@ -231,6 +234,10 @@ def register():
         return jsonify({'message': 'User created successfully'}), 201
 
 
+import time
+
+# ... (your other imports)
+
 @app.route('/lendbook', methods=['POST'])
 @jwt_required()
 def lend_book():
@@ -238,28 +245,30 @@ def lend_book():
         user_id = get_jwt_identity()
         book_id = request.json.get('book_id')
 
-        # Check if user and book exist
+#        
         user = User.query.get(user_id)
         book = Book.query.get(book_id)
         if not user or not book:
             return jsonify({'error': 'Invalid user or book'}), 404
 
-        # Check if book is already lent
+#       
         if book.lend:
             return jsonify({'error': 'Book is already lent'}), 409
 
-        # Create new Lend record
-        lend = Lend(user_id=user_id, book_id=book_id, borrowed_at=datetime.now())
+        current_time = datetime.datetime.now()
+        lend = Lend(user_id=user_id, book_id=book_id, borrowed_at=current_time)
         db.session.add(lend)
 
-        # Optionally set book.lend to True
+#      
         book.lend = True
         db.session.commit()
 
+#       
         return jsonify({'message': 'Book lent successfully'}), 201
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 
