@@ -1,1 +1,49 @@
-Hi, this is the first project of the course :)
+# Your Web Application Name
+
+Short description or tagline of your web application.
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Usage](#usage)
+- [Scripts and Styles](#scripts-and-styles)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Introduction
+
+Provide a brief introduction to your web application. Mention its purpose, key features, and any other relevant information.
+
+## Features
+
+List the key features of your web application.
+
+- Feature 1
+- Feature 2
+- ...
+
+## Prerequisites
+
+Specify any additional tools or dependencies required to run your web application.
+
+## Usage
+
+Explain how users can interact with and use your web application. Include any relevant information about user inputs, buttons, and expected outcomes.
+
+## Scripts and Styles
+
+Briefly explain the purpose of each script and style file included in your HTML code. If you have external dependencies, provide instructions on how to include them.
+
+- `navbar.js`: Handles the navigation bar functionality.
+- `style.css`: Contains styles for the web application.
+- `axios.min.js`: External library for making HTTP requests.
+
+## Contributing
+
+Explain how others can contribute to your web application. Include information about submitting issues, feature requests, or pull requests.
+
+## License
+
+Specify the license under which your web application code is distributed.

@@ -139,7 +139,7 @@ def addbook():
     current_user = User.query.get(current_user_id)
 
     # Check if the current user has the role "manager" (value 1)
-    if current_user.role != 1:
+    if current_user.role != "1":
         return jsonify({'error': 'Only managers are allowed to delete books'}), 403
     
     request_data = request.get_json()
@@ -180,7 +180,8 @@ def delete_book(book_id):
     current_user = User.query.get(current_user_id)
 
     # Check if the current user has the role "manager" (value 1)
-    if current_user.role != 1:
+    print(current_user.role != 1)
+    if current_user.role != "1":
         return jsonify({'error': 'Only managers are allowed to delete books'}), 403
     # Ensure that the user deleting the book is the owner of the book
     userid = get_jwt_identity()
@@ -283,7 +284,7 @@ def update_book(book_id):
     current_user = User.query.get(current_user_id)
 
     # Check if the current user has the role "manager" (value 1)
-    if current_user.role != 1:
+    if current_user.role != "1":
         return jsonify({'error': 'Only managers are allowed to delete books'}), 403
     try:
         userid = get_jwt_identity()
@@ -360,7 +361,7 @@ def delete_user(user_id):
     current_user = User.query.get(current_user_id)
 
     # Check if the current user has the role "manager" (value 1)
-    if current_user.role != 1:
+    if current_user.role != "1":
         return jsonify({'error': 'Only managers are allowed to delete books'}), 403
 
     # Ensure the user to be deleted exists
