@@ -3,15 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="/static/style.css">
     <title>Your Website</title>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
+<style>
+    body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 0;
+}
+
+nav ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+nav ul li a {
+    text-decoration: none;
+    color: #fff;
+}
+
+.content {
+    padding: 20px;
+}
+
+</style>
 <body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                
+            </ul>
+        </nav>
+    </header>
 <!-- Container for the navigation bar -->
 <div id="navbar-container"></div>
 <!-- Include the script to load the navigation bar -->
-<script src="/static/navbar.js"></script>
 
 User<input id="username"><br>
 password<input id="password"><br>
@@ -196,13 +236,19 @@ const deleteBook = async (bookId) => {
 
 
 
-const returnBook = async (lendId) => {
+const returnBook = async (bookId) => {
     const token = sessionStorage.getItem("access_token");
 
     try {
-        const response = await axios.post(`${MY_SERVER}/returnbook/${lendId}`, null, {
+        // Fetch the user's ID from the JWT token
+        const userId = getUserIdFromToken(token);
+
+        const response = await axios.post(`${MY_SERVER}/returnbook/${bookId}`, null, {
             headers: {
                 Authorization: `Bearer ${token}`
+            },
+            params: {
+                user_id: userId
             }
         });
 
@@ -214,6 +260,41 @@ const returnBook = async (lendId) => {
         // Handle the error accordingly
     }
 };
+
+// Function to extract user ID from the JWT token
+const getUserIdFromToken = (token) => {
+    try {
+        const decodedToken = jwt_decode(token);
+        return decodedToken.identity;
+    } catch (error) {
+        console.error("Error decoding JWT token:", error.message);
+        return null;
+    }
+};
+
+
+
+
+
+
+// const returnBook = async (lendId) => {
+//     const token = sessionStorage.getItem("access_token");
+
+//     try {
+//         const response = await axios.post(`${MY_SERVER}/returnbook/${lendId}`, null, {
+//             headers: {
+//                 Authorization: `Bearer ${token}`
+//             }
+//         });
+
+//         console.log(response.data);
+//         // Refresh the books list after returning
+//         getBooks();
+//     } catch (error) {
+//         console.error("Error returning book:", error.response ? error.response.data : error.message);
+//         // Handle the error accordingly
+//     }
+// };
 
 
         const updateBook = (bookId) => {

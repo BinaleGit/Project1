@@ -273,6 +273,20 @@ def lend_book():
 
 
 
+@app.route('/getusers', methods=['GET'])
+def get_users():
+    try:
+        # Fetch all users from the database
+        users = User.query.all()
+
+        # Convert the user data to a list of dictionaries
+        users_list = [{'id': user.id, 'username': user.username, 'password': user.password, 'role': user.role} for user in users]
+
+        return jsonify({'users': users_list}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 
 
@@ -313,16 +327,20 @@ def update_book(book_id):
         return jsonify({'error': str(e)}), 500
 
 
-@app.route('/returnbook/<int:lend_id>', methods=['POST'])
+
+
+
+
+@app.route('/returnbook/<int:book_id>', methods=['POST'])
 @jwt_required()
-def return_book(lend_id):
+def return_book(book_id):
     try:
         current_user_id = get_jwt_identity()
 
-        # Check if the lending record exists and the user is the borrower
-        lend_record = Lend.query.filter_by(id=lend_id, user_id=current_user_id).first()
+        # Check if the lending record exists for the specified book and user
+        lend_record = Lend.query.filter_by(book_id=book_id, user_id=current_user_id).first()
         if not lend_record:
-            return jsonify({'error': 'Lending record not found or user does not have permission to return'}), 404
+            return jsonify({'error': 'User is not authorized to return this book'}), 403
 
         # Update the book's lend status and remove the lending record
         book = lend_record.book
@@ -335,21 +353,10 @@ def return_book(lend_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/getusers', methods=['GET'])
-def get_users():
-    try:
-        # Fetch all users from the database
-        users = User.query.all()
 
-        # Convert the user data to a list of dictionaries
-        users_list = [{'id': user.id, 'username': user.username, 'password': user.password, 'role': user.role} for user in users]
 
-        return jsonify({'users': users_list}), 200
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500  
 
-from flask import jsonify, make_response
 
 # ...
 
