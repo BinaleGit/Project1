@@ -1,5 +1,3 @@
-markdown
-Copy code
 # Library Management System
 
 ## Overview
@@ -21,24 +19,27 @@ The Library Management System is a web-based application designed to manage book
 1. **Clone the Repository:**
    ```bash
    git clone https://github.com/BinaleGit/project1.git
-Navigate to the Project Directory:
+   ```
 
-bash
-Copy code
-cd project1
-Install Dependencies:
-Ensure you have Python and Flask installed. Install the required Python packages using pip:
+2. **Navigate to the Project Directory:**
+   ```bash
+   cd project1
+   ```
 
-bash
-Copy code
-pip install -r requirements.txt
-Run the Application:
+3. **Install Dependencies:**
+   Ensure you have Python and Flask installed. Install the required Python packages using pip:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-bash
-Copy code
-python app.py
-Access the Application:
-Open your web browser and navigate to http://localhost:5000 to access the Library Management System.
+4. **Run the Application:**
+   ```bash
+   python app.py
+   ```
 
-Contributor
-Roee Bina
+5. **Access the Application:**
+   Open your web browser and navigate to http://localhost:5000 to access the Library Management System.
+
+## Contributors
+- [Roee Bina](https://github.com/BinaleGit)
+
