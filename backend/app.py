@@ -54,6 +54,8 @@ class Lend(db.Model):
     book_id = db.Column(db.Integer, db.ForeignKey("book.id"), nullable=False)
     book = db.relationship("Book", backref="lends")
     borrowed_at = db.Column(db.DateTime, nullable=False)
+    return_at = db.Column(db.DateTime, nullable=False)
+
 
 # Helper functions
 def generate_token(user_id):
@@ -220,9 +222,16 @@ def lend_book():
             return jsonify({'error': 'Book is already lent'}), 409
 
         current_time = datetime.datetime.now()
-        lend = Lend(user_id=user_id, book_id=book_id, borrowed_at=current_time)
-        db.session.add(lend)
+        return_at1 = current_time + datetime.timedelta(days=7)
+        lend = Lend(user_id=user_id, book_id=book_id, borrowed_at=current_time, return_at=return_at1)
 
+        # Add the lend object to the session
+        db.session.add(lend)
+        
+        # Commit the changes to the database session
+        db.session.commit()
+
+        # Update the book's lend status
         book.lend = True
         db.session.commit()
 
@@ -230,6 +239,7 @@ def lend_book():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 # Route to get all users
 @app.route('/getusers', methods=['GET'])
@@ -332,4 +342,3 @@ if __name__ == '__main__':
     with app.app_context():
         db.create_all()
     app.run(debug=True, port=5000)
-    
