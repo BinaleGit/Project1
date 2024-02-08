@@ -42,7 +42,7 @@
             padding: 20px;
             background-color: #fff;
             border-radius: 5px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 4px rgba(0, 0, 0, 0.1);
             max-width: 900px; /* Adjusted container width */
         }
 
@@ -133,6 +133,17 @@
         .action-buttons button:hover {
             background-color: #45a049;
         }
+        h1#title {
+    font-size: 36px;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    background-color: #45a049;
+    color: white;
+}
+#book_d {
+    background-color:#77cd7c;
+}
     </style>
 </head>
 <body>
@@ -149,7 +160,8 @@
     <!-- Main content container -->
     <div class="container">
         <!-- User login and registration form -->
-        <h1>Login/ SignUp</h1>
+        <h1 id="title">Bina's Library</h1>
+        <h2>Login/Sign Up</h2>
         <div class="form-group">
             <label for="username">User:</label>
             <input type="text" id="username">
@@ -177,9 +189,11 @@
         <!-- Container to display user greeting and image -->
         <div id="gret"></div>
         <div id="uimage"></div>
+       
+        <div id="usersContainer" class="container">
 
         <!-- Section for managing books -->
-        <h1>Book Details</h1>
+        <h1 id = "book_d">Book Details</h1>
         <div class="form-group">
             <label for="book_name">Name:</label>
             <input type="text" id="book_name">
@@ -197,12 +211,11 @@
             <button onclick="getBooks()">Fetch Books</button>
             <button onclick="getUsers()">Fetch Users</button>
         </div>
-        <h2>You have 1 Week To Return The Book You Borrowed</h2>
     </div>
 
     <!-- Container to display books -->
     <div id="booksContainer" class="container">
-        <h2>Book List</h2>
+        <h2 id = "book_d">Book List</h2>
         <table>
             <thead>
                 <tr>
@@ -210,9 +223,9 @@
                     <th>Writer</th>
                     <th>Publish Date</th>
                     <th>Lend Out?</th>
-                    <th>Lend By?</th>
-                    <th>Lend?</th>
-                    <th>lend</th>
+                    <th>Lend By</th>
+                    <th>Return at</th>
+                    <th>lend?</th>
                     <th>return?</th>
                     <th>delete</th>
                     <th>update</th>
@@ -220,11 +233,13 @@
             </thead>
             <tbody id="booksTableBody"></tbody>
         </table>
+        <h2>You have 1 Week To Return The Book You Borrowed</h2>
     </div>
+</div>
 
     <!-- Container to display users -->
     <div id="usersContainer" class="container">
-        <h2>User List</h2>
+        <h2 id = "book_d">User List</h2>
         <table>
             <thead>
                 <tr>
