@@ -134,6 +134,7 @@
                     <th>Publish Date</th>
                     <th>Lend Out?</th>
                     <th>Lend By?</th>
+                    <th>Return at</th>
                     <th>Delete</th>
                     <th>Lend</th>
                     <th>Return</th>
@@ -328,15 +329,19 @@ const updateBooksTable = async (booksList) => {
         const lenderCell = row.insertCell(4);
         lenderCell.textContent = book.lender; // Display lender name directly
 
+        // Add cell for return date
+        const returnDateCell = row.insertCell(5);
+        returnDateCell.textContent = book.return_date || '-'; // Display return date or '-' if not lent
+
         // Add cell for delete button
-        const deleteButtonCell = row.insertCell(5);
+        const deleteButtonCell = row.insertCell(6);
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
         deleteButton.onclick = () => deleteBook(book.book_id);
         deleteButtonCell.appendChild(deleteButton);
 
         // Add cell for lending button
-        const lendButtonCell = row.insertCell(6);
+        const lendButtonCell = row.insertCell(7);
         const lendButton = document.createElement("button");
         lendButton.textContent = "Lend";
         lendButton.onclick = () => lendBook(book.book_id);
@@ -344,7 +349,7 @@ const updateBooksTable = async (booksList) => {
         lendButtonCell.appendChild(lendButton);
 
         // Add cell for returning button
-        const returnButtonCell = row.insertCell(7);
+        const returnButtonCell = row.insertCell(8);
         const returnButton = document.createElement("button");
         returnButton.textContent = "Return";
         returnButton.onclick = () => returnBook(book.book_id);
@@ -352,7 +357,7 @@ const updateBooksTable = async (booksList) => {
         returnButtonCell.appendChild(returnButton);
 
         // Add cell for update button
-        const updateButtonCell = row.insertCell(8);
+        const updateButtonCell = row.insertCell(9);
         const updateButton = document.createElement("button");
         updateButton.textContent = "Update";
         updateButton.onclick = () => updateBook(book.book_id);

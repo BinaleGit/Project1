@@ -137,6 +137,7 @@ def addbook():
 
 # Route to get all books
 # Modify the route to fetch book information to include user name if it is lent
+# Modify the route to fetch book information to include return date if it is lent
 @app.route('/getbooks', methods=['GET'])
 def get_books():
     try:
@@ -160,10 +161,12 @@ def get_books():
                     if user:
                         user_info['user_name'] = user.username
                     book_data['lender'] = user_info['user_name']  # Add user name to book data
+                    book_data['return_date'] = lend_info.return_at.strftime('%Y-%m-%d')  # Add return date to book data
             books_list.append(book_data)
         return jsonify({'books': books_list}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 # Route to delete a book
