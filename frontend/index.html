@@ -8,6 +8,50 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 </head>
 <style>
+    table {
+        border-collapse: collapse;
+        width: 100%;
+    }
+
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #ddd;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .action-buttons button {
+        margin: 5px;
+        padding: 5px 10px;
+        border: none;
+        background-color: #4CAF50;
+        color: white;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    .action-buttons button:hover {
+        background-color: #45a049;
+    }
+</style>
+
+<style>
     /* CSS styles for better appearance */
     body {
         font-family: Arial, sans-serif;
@@ -74,7 +118,7 @@
     <h1>Book Details</h1>
     Name: <input id="book_name"><br>
     Writer: <input id="riter"><br>
-    Date: <input id="date"><br>
+    Date: <input type="date" id="date"><br>
     <!-- Buttons for adding books, fetching books, and fetching users -->
     <button onclick="addBook()">Add a Book</button>
     <button onclick="getBooks()">Fetch Books</button>
@@ -85,10 +129,11 @@
         <table border="1">
             <thead>
                 <tr>
-                    <th>Name</th>
+                    <th>Book Name</th>
                     <th>Writer</th>
-                    <th>Date</th>
-                    <th>Lend?</th>
+                    <th>Publish Date</th>
+                    <th>Lend Out?</th>
+                    <th>Lend By?</th>
                     <th>Delete</th>
                     <th>Lend</th>
                     <th>Return</th>
@@ -194,6 +239,40 @@
         // Handle the error accordingly
     }
 };
+
+const updateUserInfo = async (userId) => {
+    // Retrieve updated user details from the user
+    const updatedUsername = prompt("Enter updated username:");
+    // const updatedPassword = prompt("Enter updated password:"); // Prompt the user to enter the new password
+    const updatedRole = prompt("Enter updated role:");
+
+    // Prepare the updated user object
+    const updatedUser = {
+        username: updatedUsername,
+        password: updatedPassword, // Include the new password in the updated user object
+        role: updatedRole
+    };
+
+    try {
+        const token = sessionStorage.getItem("access_token");
+
+        // Make a PUT request to the backend API to update the user
+        const response = await axios.put(`${MY_SERVER}/updateuser/${userId}`, updatedUser, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        console.log(response.data);
+        // Optionally, update the UI or display a success message
+    } catch (error) {
+        console.error("Error updating user:", error.response ? error.response.data : error.message);
+        // Handle the error accordingly (e.g., show an error message)
+    }
+};
+
+
 const updateBook = async (bookId) => {
     const updatedName = prompt("Enter updated book name:");
     const updatedRiter = prompt("Enter updated writer:");
@@ -222,14 +301,14 @@ const updateBook = async (bookId) => {
 };
 
 
-const updateBooksTable = (booksList) => {
+const updateBooksTable = async (booksList) => {
     const booksTableBody = document.getElementById("booksTableBody");
 
     // Clear the existing content
     booksTableBody.innerHTML = "";
 
     // Create and append new rows for each book
-    booksList.forEach(book => {
+    for (const book of booksList) {
         const row = booksTableBody.insertRow();
 
         // Add cells for book properties
@@ -245,15 +324,19 @@ const updateBooksTable = (booksList) => {
         const lendStatusCell = row.insertCell(3);
         lendStatusCell.textContent = book.lend ? 'Lent' : 'Not Lent';
 
+        // Add cell for lender name
+        const lenderCell = row.insertCell(4);
+        lenderCell.textContent = book.lender; // Display lender name directly
+
         // Add cell for delete button
-        const deleteButtonCell = row.insertCell(4);
+        const deleteButtonCell = row.insertCell(5);
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
         deleteButton.onclick = () => deleteBook(book.book_id);
         deleteButtonCell.appendChild(deleteButton);
 
         // Add cell for lending button
-        const lendButtonCell = row.insertCell(5);
+        const lendButtonCell = row.insertCell(6);
         const lendButton = document.createElement("button");
         lendButton.textContent = "Lend";
         lendButton.onclick = () => lendBook(book.book_id);
@@ -261,7 +344,7 @@ const updateBooksTable = (booksList) => {
         lendButtonCell.appendChild(lendButton);
 
         // Add cell for returning button
-        const returnButtonCell = row.insertCell(6);
+        const returnButtonCell = row.insertCell(7);
         const returnButton = document.createElement("button");
         returnButton.textContent = "Return";
         returnButton.onclick = () => returnBook(book.book_id);
@@ -269,13 +352,14 @@ const updateBooksTable = (booksList) => {
         returnButtonCell.appendChild(returnButton);
 
         // Add cell for update button
-        const updateButtonCell = row.insertCell(7);
+        const updateButtonCell = row.insertCell(8);
         const updateButton = document.createElement("button");
         updateButton.textContent = "Update";
         updateButton.onclick = () => updateBook(book.book_id);
         updateButtonCell.appendChild(updateButton);
-    });
+    }
 };
+
 
 
 const lendBook = async (bookId) => {
@@ -380,7 +464,7 @@ const updateUsersTable = (usersList) => {
 
         const updateButton = document.createElement("button");
         updateButton.textContent = "Update";
-        updateButton.onclick = () => updateUser(user.id); // Call updateUser function with user ID
+        updateButton.onclick = () => updateUserInfo(user.id); // Call updateUser function with user ID
         actionsCell.appendChild(updateButton);
     });
 };

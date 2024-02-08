@@ -136,18 +136,35 @@ def addbook():
     return jsonify({'message': 'Book created successfully'}), 201
 
 # Route to get all books
+# Modify the route to fetch book information to include user name if it is lent
 @app.route('/getbooks', methods=['GET'])
 def get_books():
     try:
-        # Fetch all books from the database
         books = Book.query.all()
-
-        # Convert book data to a list of dictionaries
-        books_list = [{'book_id': book.id, 'book_name': book.name, 'riter': book.riter, 'date': book.date, 'lend': book.lend} for book in books]
-
+        books_list = []
+        for book in books:
+            book_data = {
+                'book_id': book.id,
+                'book_name': book.name,
+                'riter': book.riter,
+                'date': book.date,
+                'lend': book.lend
+            }
+            if book.lend:
+                lend_info = Lend.query.filter_by(book_id=book.id).first()
+                if lend_info:
+                    user_info = {
+                        'user_name': 'Unknown'  # Default if user is not found
+                    }
+                    user = User.query.get(lend_info.user_id)
+                    if user:
+                        user_info['user_name'] = user.username
+                    book_data['lender'] = user_info['user_name']  # Add user name to book data
+            books_list.append(book_data)
         return jsonify({'books': books_list}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 # Route to delete a book
 @app.route('/deletebook/<int:book_id>', methods=['DELETE'])
@@ -162,7 +179,7 @@ def delete_book(book_id):
 
     # Ensure the user deleting the book is the owner
     userid = get_jwt_identity()
-    book_to_delete = Book.query.filter_by(id=book_id, userid=userid).first()
+    book_to_delete = Book.query.filter_by(id=book_id).first()
 
     if not book_to_delete:
         return jsonify({'error': 'Book not found or user does not have permission to delete'}), 404
@@ -172,6 +189,41 @@ def delete_book(book_id):
     db.session.commit()
 
     return jsonify({'message': 'Book deleted successfully'}), 200
+
+
+
+
+from werkzeug.security import generate_password_hash
+
+@app.route('/updateuser/<int:user_id>', methods=['PUT'])
+@jwt_required()
+def update_user(user_id):
+    try:
+        # Ensure the authenticated user is an admin or has appropriate permissions
+
+        # Fetch user details from the request body
+        updated_user_info = request.json
+        
+        # Find the user to be updated
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Update user details
+        user.username = updated_user_info.get('username', user.username)
+        # if 'password' in updated_user_info:
+        #     # Hash and salt the new password using Bcrypt
+        #     hashed_password = bcrypt.generate_password_hash('password').decode('utf-8')
+        #     user.password = hashed_password
+        user.role = updated_user_info.get('role', user.role)
+
+        # Commit changes to the database
+        db.session.commit()
+
+        return jsonify({'message': 'User updated successfully'}), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 # Route to register a new user
 @app.route('/register', methods=['POST'])
