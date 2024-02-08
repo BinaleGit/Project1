@@ -3,130 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Website</title>
+    <title>Your Library</title>
     <!-- Include Axios library for making HTTP requests -->
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+
+        nav ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        nav ul li {
+            display: inline;
+            margin-right: 20px;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .container {
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            max-width: 900px; /* Adjusted container width */
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        select,
+        input[type="file"],
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            margin-top: 5px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background-color: #b99ab3;
+            
+        }
+
+
+        #gret {
+            margin-top: 20px;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        #uimage {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1, h2 {
+            text-align: center;
+        }
+
+        /* Table styles */
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px; /* Adjusted margin top */
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .action-buttons button {
+            margin: 5px;
+            padding: 5px 10px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        .action-buttons button:hover {
+            background-color: #45a049;
+        }
+    </style>
 </head>
-<style>
-    table {
-        border-collapse: collapse;
-        width: 100%;
-    }
-
-    th, td {
-        border: 1px solid #ddd;
-        padding: 8px;
-        text-align: left;
-    }
-
-    th {
-        background-color: #f2f2f2;
-    }
-
-    tr:nth-child(even) {
-        background-color: #f2f2f2;
-    }
-
-    tr:hover {
-        background-color: #ddd;
-    }
-
-    .action-buttons {
-        display: flex;
-        justify-content: space-between;
-    }
-
-    .action-buttons button {
-        margin: 5px;
-        padding: 5px 10px;
-        border: none;
-        background-color: #4CAF50;
-        color: white;
-        cursor: pointer;
-        border-radius: 4px;
-    }
-
-    .action-buttons button:hover {
-        background-color: #45a049;
-    }
-</style>
-
-<style>
-    /* CSS styles for better appearance */
-    body {
-        font-family: Arial, sans-serif;
-        margin: 0;
-        padding: 0;
-    }
-
-    header {
-        background-color: #333;
-        color: #fff;
-        padding: 10px 0;
-    }
-
-    nav ul {
-        list-style-type: none;
-        margin: 0;
-        padding: 0;
-    }
-
-    nav ul li {
-        display: inline;
-        margin-right: 20px;
-    }
-
-    nav ul li a {
-        text-decoration: none;
-        color: #fff;
-    }
-
-    .content {
-        padding: 20px;
-    }
-</style>
 <body>
     <!-- Header with navigation -->
     <header>
         <nav>
             <ul>
-                <li><a href="index.html">Home</a></li>
+                <li><a href="index.html">Bina's Library</a></li>
                 <!-- Add more navigation links as needed -->
             </ul>
         </nav>
     </header>
 
-    <!-- User login and registration form -->
-    User: <input id="username"><br>
-    Password: <input id="password"><br>
-    Role Type:
-    <select id="role">
-        <option value="0">User (Cannot Add a Book)</option>
-        <option value="1" selected>Manager</option>
-    </select><br>
-    <!-- File input for user image -->
-    <input type="file" id="fileInput"><br>
-    <!-- Buttons for login, logout, and registration -->
-    <button onclick="login()">Login</button>
-    <button onclick="logout()">Logout</button>
-    <button onclick="register()">Register</button>
-    <!-- Container to display user greeting and image -->
-    <div id="gret">Welcome</div>
-    <div id="uimage">Image</div>
+    <!-- Main content container -->
+    <div class="container">
+        <!-- User login and registration form -->
+        <h1>Login/ SignUp</h1>
+        <div class="form-group">
+            <label for="username">User:</label>
+            <input type="text" id="username">
+        </div>
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" id="password">
+        </div>
+        <div class="form-group">
+            <label for="role">Role Type:</label>
+            <select id="role">
+                <option value="0">User (Cannot Add a Book)</option>
+                <option value="1" selected>Manager</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="fileInput">User Image:</label>
+            <input type="file" id="fileInput">
+        </div>
+        <div class="form-group">
+            <button onclick="login()">Login</button>
+            <button onclick="logout()">Logout</button>
+            <button onclick="register()">Register</button>
+        </div>
+        <!-- Container to display user greeting and image -->
+        <div id="gret"></div>
+        <div id="uimage"></div>
 
-    <!-- Section for managing books -->
-    <h1>Book Details</h1>
-    Name: <input id="book_name"><br>
-    Writer: <input id="riter"><br>
-    Date: <input type="date" id="date"><br>
-    <!-- Buttons for adding books, fetching books, and fetching users -->
-    <button onclick="addBook()">Add a Book</button>
-    <button onclick="getBooks()">Fetch Books</button>
-    <button onclick="getUsers()">Fetch Users</button>
+        <!-- Section for managing books -->
+        <h1>Book Details</h1>
+        <div class="form-group">
+            <label for="book_name">Name:</label>
+            <input type="text" id="book_name">
+        </div>
+        <div class="form-group">
+            <label for="riter">Writer:</label>
+            <input type="text" id="riter">
+        </div>
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="date" id="date">
+        </div>
+        <div class="form-group">
+            <button onclick="addBook()">Add a Book</button>
+            <button onclick="getBooks()">Fetch Books</button>
+            <button onclick="getUsers()">Fetch Users</button>
+        </div>
+        <h2>You have 1 Week To Return The Book You Borrowed</h2>
+    </div>
 
     <!-- Container to display books -->
-    <div id="booksContainer">
-        <table border="1">
+    <div id="booksContainer" class="container">
+        <h2>Book List</h2>
+        <table>
             <thead>
                 <tr>
                     <th>Book Name</th>
@@ -134,12 +211,11 @@
                     <th>Publish Date</th>
                     <th>Lend Out?</th>
                     <th>Lend By?</th>
-                    <th>Return at</th>
-                    <th>Delete</th>
-                    <th>Lend</th>
-                    <th>Return</th>
-                    <th>Update</th> 
-
+                    <th>Lend?</th>
+                    <th>lend</th>
+                    <th>return?</th>
+                    <th>delete</th>
+                    <th>update</th>
                 </tr>
             </thead>
             <tbody id="booksTableBody"></tbody>
@@ -147,19 +223,24 @@
     </div>
 
     <!-- Container to display users -->
-    <div id="usersContainer">
-        <table border="1">
+    <div id="usersContainer" class="container">
+        <h2>User List</h2>
+        <table>
             <thead>
                 <tr>
                     <th>Username</th>
                     <th>Password</th>
                     <th>Role</th>
                     <th>Actions</th>
+                    
                 </tr>
             </thead>
             <tbody id="usersTableBody"></tbody>
         </table>
     </div>
+</body>
+</html>
+
 
     <!-- JavaScript section for handling user interactions -->
     <script>
@@ -223,6 +304,7 @@
             }
         };
         const deleteBook = async (bookId) => {
+        
     const token = sessionStorage.getItem("access_token");
 
     try {
@@ -242,6 +324,7 @@
 };
 
 const updateUserInfo = async (userId) => {
+    
     // Retrieve updated user details from the user
     const updatedUsername = prompt("Enter updated username:");
     // const updatedPassword = prompt("Enter updated password:"); // Prompt the user to enter the new password
@@ -332,36 +415,40 @@ const updateBooksTable = async (booksList) => {
         // Add cell for return date
         const returnDateCell = row.insertCell(5);
         returnDateCell.textContent = book.return_date || '-'; // Display return date or '-' if not lent
-
-        // Add cell for delete button
-        const deleteButtonCell = row.insertCell(6);
-        const deleteButton = document.createElement("button");
-        deleteButton.textContent = "Delete";
-        deleteButton.onclick = () => deleteBook(book.book_id);
-        deleteButtonCell.appendChild(deleteButton);
-
+        
         // Add cell for lending button
-        const lendButtonCell = row.insertCell(7);
+        const lendButtonCell = row.insertCell(6);
         const lendButton = document.createElement("button");
         lendButton.textContent = "Lend";
         lendButton.onclick = () => lendBook(book.book_id);
         lendButton.disabled = book.lend; // Disable button if book is already lent
         lendButtonCell.appendChild(lendButton);
-
-        // Add cell for returning button
-        const returnButtonCell = row.insertCell(8);
+     
+         // Add cell for returning button
+         const returnButtonCell = row.insertCell(7);
         const returnButton = document.createElement("button");
         returnButton.textContent = "Return";
         returnButton.onclick = () => returnBook(book.book_id);
         returnButton.disabled = !book.lend; // Disable button if book is not lent
         returnButtonCell.appendChild(returnButton);
+    
+        
 
+        // Add cell for delete button
+        const deleteButtonCell = row.insertCell(8);
+        const deleteButton = document.createElement("button");
+        deleteButton.textContent = "Delete";
+        deleteButton.onclick = () => deleteBook(book.book_id);
+        deleteButtonCell.appendChild(deleteButton);
+    
+    
         // Add cell for update button
         const updateButtonCell = row.insertCell(9);
         const updateButton = document.createElement("button");
         updateButton.textContent = "Update";
         updateButton.onclick = () => updateBook(book.book_id);
         updateButtonCell.appendChild(updateButton);
+        
     }
 };
 
@@ -460,6 +547,7 @@ const updateUsersTable = (usersList) => {
         const roleCell = row.insertCell(2);
         roleCell.textContent = user.role;
 
+      
         // Add buttons for delete and update actions
         const actionsCell = row.insertCell(3);
         const deleteButton = document.createElement("button");
@@ -471,10 +559,12 @@ const updateUsersTable = (usersList) => {
         updateButton.textContent = "Update";
         updateButton.onclick = () => updateUserInfo(user.id); // Call updateUser function with user ID
         actionsCell.appendChild(updateButton);
+       
     });
 };
 // Function to delete a user
 const deleteUser = async (userId) => {
+    
     try {
         // Retrieve the access token from session storage
         const token = sessionStorage.getItem("access_token");
