@@ -4,7 +4,7 @@ import os
 import jwt
 import time
 from functools import wraps
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, current_app, jsonify, request, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_bcrypt import Bcrypt
@@ -30,6 +30,8 @@ CORS(app)
 UPLOAD_FOLDER = 'uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+
+
 # Define SQLAlchemy models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -43,6 +45,7 @@ class Book(db.Model):
     name = db.Column(db.String(100), nullable=False)
     riter = db.Column(db.String(100), nullable=False)
     date = db.Column(db.String(100), nullable=False)
+    img = db.Column(db.String(100))
     lend = db.Column(db.Boolean, default=False)
     userid = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('books', lazy=True))
@@ -110,7 +113,19 @@ def login():
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-# Route to add a book
+# Route to serve uploaded files
+@app.route('/uploads/books/<filename>')
+def uploaded_file_book(filename):
+    return send_from_directory(app.config['BOOK_UPLOAD_FOLDER'], filename)
+
+# Define the upload folder for book images
+BOOK_UPLOAD_FOLDER = 'uploads/books'
+
+# Update the configuration to set the upload folder
+app.config['BOOK_UPLOAD_FOLDER'] = BOOK_UPLOAD_FOLDER
+
+
+
 @app.route('/addbook', methods=['POST'])
 @jwt_required()
 def addbook():
@@ -121,23 +136,38 @@ def addbook():
     if current_user.role != "1":
         return jsonify({'error': 'Only managers are allowed to add books'}), 403
 
-    request_data = request.get_json()
+    # Extract book details from the request
+    book_name = request.form.get('book_name')
+    riter = request.form.get('riter')
+    date = request.form.get('date')
 
-    name = request_data['book_name']
-    riter = request_data['riter']
-    date = request_data['date']
-    userid = get_jwt_identity()
+    # Get the uploaded file
+    file = request.files.get('file')
+    if file:
+        filename = secure_filename(file.filename)
 
-    # Create a new book and add it to the database
-    new_book = Book(name=name, riter=riter, date=date, userid=userid)
-    db.session.add(new_book)
-    db.session.commit()
+        # Save the file to the server
+        filepath = os.path.join(app.config['BOOK_UPLOAD_FOLDER'], filename)
+        file.save(filepath)
 
-    return jsonify({'message': 'Book created successfully'}), 201
+        # Create a new book and add it to the database
+        new_book = Book(name=book_name, riter=riter, date=date, img=filename, userid=current_user_id)
+        db.session.add(new_book)
+        db.session.commit()
+
+        return jsonify({'message': 'Book created successfully'}), 201
+    else:
+        return jsonify({'error': 'No image file provided'}), 400
+
 
 # Route to get all books
 # Modify the route to fetch book information to include user name if it is lent
 # Modify the route to fetch book information to include return date if it is lent
+from flask import request, jsonify
+
+
+
+
 @app.route('/getbooks', methods=['GET'])
 def get_books():
     try:
@@ -149,6 +179,7 @@ def get_books():
                 'book_name': book.name,
                 'riter': book.riter,
                 'date': book.date,
+                'img_url': f"{request.url_root}{BOOK_UPLOAD_FOLDER}/{book.img}",  # Construct image URL
                 'lend': book.lend
             }
             if book.lend:
@@ -160,12 +191,14 @@ def get_books():
                     user = User.query.get(lend_info.user_id)
                     if user:
                         user_info['user_name'] = user.username
-                    book_data['lender'] = user_info['user_name']  # Add user name to book data
-                    book_data['return_date'] = lend_info.return_at.strftime('%Y-%m-%d')  # Add return date to book data
+                    book_data['lender'] = user_info['user_name']
+                    book_data['return_date'] = lend_info.return_at.strftime('%Y-%m-%d')
             books_list.append(book_data)
         return jsonify({'books': books_list}), 200
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
 
 
 
@@ -203,6 +236,14 @@ from werkzeug.security import generate_password_hash
 def update_user(user_id):
     try:
         # Ensure the authenticated user is an admin or has appropriate permissions
+        current_user_id = get_jwt_identity()
+
+    # Check if the current user has the role "manager"
+        current_user = User.query.get(current_user_id)
+        if current_user.role != "1":
+            return jsonify({'error': 'Only managers are allowed to update users'}), 403
+            
+
 
         # Fetch user details from the request body
         updated_user_info = request.json
@@ -214,11 +255,12 @@ def update_user(user_id):
 
         # Update user details
         user.username = updated_user_info.get('username', user.username)
-        # if 'password' in updated_user_info:
-        #     # Hash and salt the new password using Bcrypt
-        #     hashed_password = bcrypt.generate_password_hash('password').decode('utf-8')
-        #     user.password = hashed_password
         user.role = updated_user_info.get('role', user.role)
+        # password = request.form.get('password')
+
+    # Hash and salt the new password using Bcrypt
+        # hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
+        # user.password = updated_user_info.get('password', hashed_password)
 
         # Commit changes to the database
         db.session.commit()
@@ -323,17 +365,15 @@ def update_book(book_id):
         return jsonify({'error': 'Only managers are allowed to update books'}), 403
 
     try:
-        userid = get_jwt_identity()
-        book_to_update = Book.query.filter_by(id=book_id, userid=userid).first()
+        book_to_update = Book.query.filter_by(id=book_id).first()
 
         if not book_to_update:
             return jsonify({'error': 'Book not found or user does not have permission to update'}), 404
 
         # Get updated book details from the request data
-        request_data = request.get_json()
-        updated_name = request_data.get('name', book_to_update.name)
-        updated_riter = request_data.get('riter', book_to_update.riter)
-        updated_date = request_data.get('date', book_to_update.date)
+        updated_name = request.json.get('name', book_to_update.name)
+        updated_riter = request.json.get('riter', book_to_update.riter)
+        updated_date = request.json.get('date', book_to_update.date)
 
         # Update the book details
         book_to_update.name = updated_name
@@ -347,6 +387,7 @@ def update_book(book_id):
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 # Route to return a book
 @app.route('/returnbook/<int:book_id>', methods=['POST'])

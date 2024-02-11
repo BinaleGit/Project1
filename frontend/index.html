@@ -207,6 +207,10 @@
             <input type="date" id="date">
         </div>
         <div class="form-group">
+            <label for="fileInputBook">Book Image:</label>
+            <input type="file" id="fileInputBook">
+        </div>
+        <div class="form-group">
             <button onclick="addBook()">Add a Book</button>
             <button onclick="getBooks()">Fetch Books</button>
             <button onclick="getUsers()">Fetch Users</button>
@@ -222,6 +226,7 @@
                     <th>Book Name</th>
                     <th>Writer</th>
                     <th>Publish Date</th>
+                    <th>pic</th>
                     <th>Lend Out?</th>
                     <th>Lend By</th>
                     <th>Return at</th>
@@ -265,35 +270,43 @@
         // Function to add a book
         // This function sends a POST request to the server to add a new book
         const addBook = async () => {
-            // Get book details from input fields
-            const bookName = document.getElementById("book_name").value;
-            const riter = document.getElementById("riter").value;
-            const date = document.getElementById("date").value;
+    // Get book details from input fields
+    const bookName = document.getElementById("book_name").value;
+    const riter = document.getElementById("riter").value;
+    const date = document.getElementById("date").value;
+    const fileInput = document.getElementById("fileInputBook").files[0];
 
-            // Retrieve the access token from session storage
-            const token = sessionStorage.getItem("access_token");
+    // Retrieve the access token from session storage
+    const token = sessionStorage.getItem("access_token");
 
-            try {
-                // Send a POST request to the server to add the book
-                const response = await axios.post(
-                    `${MY_SERVER}/addbook`,
-                    { book_name: bookName, riter: riter, date: date },
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json', // Set Content-Type header
-                        },
-                    }
-                );
+    try {
+        // Create a FormData object to send the file along with other data
+        const formData = new FormData();
+        formData.append('book_name', bookName);
+        formData.append('riter', riter);
+        formData.append('date', date);
+        formData.append('file', fileInput);
 
-                console.log(response.data);
-                // Handle the response as needed (e.g., show a success message, update UI, etc.)
-
-            } catch (error) {
-                console.error("Error adding book:", error.response ? error.response.data : error.message);
-                // Handle the error accordingly (e.g., show an error message)
+        // Send a POST request to the server to add the book
+        const response = await axios.post(
+            `${MY_SERVER}/addbook`,
+            formData,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'multipart/form-data', // Set Content-Type header for FormData
+                },
             }
-        };
+        );
+
+        // Optionally, handle the response as needed
+        console.log(response.data);
+    } catch (error) {
+        // Handle errors
+        console.error("Error adding book:", error.response ? error.response.data : error.message);
+    }
+};
+
 
         // Function to fetch all books
         // This function sends a GET request to the server to fetch all books
@@ -342,13 +355,13 @@ const updateUserInfo = async (userId) => {
     
     // Retrieve updated user details from the user
     const updatedUsername = prompt("Enter updated username:");
-    // const updatedPassword = prompt("Enter updated password:"); // Prompt the user to enter the new password
+    //  const updatedPassword = prompt("Enter updated password:"); // Prompt the user to enter the new password
     const updatedRole = prompt("Enter updated role:");
 
     // Prepare the updated user object
     const updatedUser = {
         username: updatedUsername,
-        password: updatedPassword, // Include the new password in the updated user object
+        // password: updatedPassword, // Include the new password in the updated user object
         role: updatedRole
     };
 
@@ -373,22 +386,30 @@ const updateUserInfo = async (userId) => {
 
 
 const updateBook = async (bookId) => {
+    // Prompt the user to enter updated book details
     const updatedName = prompt("Enter updated book name:");
     const updatedRiter = prompt("Enter updated writer:");
     const updatedDate = prompt("Enter updated date:");
 
+    // Retrieve the access token from session storage
     const token = sessionStorage.getItem("access_token");
 
     try {
-        const response = await axios.put(`${MY_SERVER}/updatebook/${bookId}`, {
-            name: updatedName,
-            riter: updatedRiter,
-            date: updatedDate
-        }, {
-            headers: {
-                Authorization: `Bearer ${token}`
+        // Send a PUT request to the backend API to update the book
+        const response = await axios.put(
+            `${MY_SERVER}/updatebook/${bookId}`,
+            {
+                name: updatedName,
+                riter: updatedRiter,
+                date: updatedDate
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json' // Set Content-Type header
+                }
             }
-        });
+        );
 
         console.log(response.data);
         // Refresh the books list after updating
@@ -398,6 +419,7 @@ const updateBook = async (bookId) => {
         // Handle the error accordingly
     }
 };
+
 
 
 const updateBooksTable = async (booksList) => {
@@ -420,49 +442,59 @@ const updateBooksTable = async (booksList) => {
         const dateCell = row.insertCell(2);
         dateCell.textContent = book.date;
 
-        const lendStatusCell = row.insertCell(3);
+        const imageCell = row.insertCell(3);
+        const image = document.createElement("img");
+        image.src = book.img_url;
+        image.alt = "Book Image";
+        imageCell.appendChild(image);
+
+        const lendStatusCell = row.insertCell(4);
         lendStatusCell.textContent = book.lend ? 'Lent' : 'Not Lent';
 
         // Add cell for lender name
-        const lenderCell = row.insertCell(4);
+        const lenderCell = row.insertCell(5);
         lenderCell.textContent = book.lender; // Display lender name directly
 
         // Add cell for return date
-        const returnDateCell = row.insertCell(5);
+        const returnDateCell = row.insertCell(6);
         returnDateCell.textContent = book.return_date || '-'; // Display return date or '-' if not lent
         
         // Add cell for lending button
-        const lendButtonCell = row.insertCell(6);
+        const lendButtonCell = row.insertCell(7);
         const lendButton = document.createElement("button");
         lendButton.textContent = "Lend";
         lendButton.onclick = () => lendBook(book.book_id);
         lendButton.disabled = book.lend; // Disable button if book is already lent
         lendButtonCell.appendChild(lendButton);
+
      
          // Add cell for returning button
-         const returnButtonCell = row.insertCell(7);
+         const returnButtonCell = row.insertCell(8);
         const returnButton = document.createElement("button");
         returnButton.textContent = "Return";
         returnButton.onclick = () => returnBook(book.book_id);
         returnButton.disabled = !book.lend; // Disable button if book is not lent
         returnButtonCell.appendChild(returnButton);
+
     
         
 
         // Add cell for delete button
-        const deleteButtonCell = row.insertCell(8);
+        const deleteButtonCell = row.insertCell(9);
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
         deleteButton.onclick = () => deleteBook(book.book_id);
         deleteButtonCell.appendChild(deleteButton);
+
     
     
         // Add cell for update button
-        const updateButtonCell = row.insertCell(9);
+        const updateButtonCell = row.insertCell(10);
         const updateButton = document.createElement("button");
         updateButton.textContent = "Update";
         updateButton.onclick = () => updateBook(book.book_id);
         updateButtonCell.appendChild(updateButton);
+
         
     }
 };
