@@ -203,6 +203,10 @@
             <input type="text" id="riter">
         </div>
         <div class="form-group">
+            <label for="type">Type:</label>
+            <input type="text" id="type">
+        </div>
+        <div class="form-group">
             <label for="date">Date:</label>
             <input type="date" id="date">
         </div>
@@ -228,6 +232,7 @@
                     <th>Publish Date</th>
                     <th>pic</th>
                     <th>Lend Out?</th>
+                    <th>Return Time</th>
                     <th>Lend By</th>
                     <th>Return at</th>
                     <th>lend?</th>
@@ -274,6 +279,7 @@
     const bookName = document.getElementById("book_name").value;
     const riter = document.getElementById("riter").value;
     const date = document.getElementById("date").value;
+    const type = document.getElementById("type").value
     const fileInput = document.getElementById("fileInputBook").files[0];
 
     // Retrieve the access token from session storage
@@ -286,6 +292,7 @@
         formData.append('riter', riter);
         formData.append('date', date);
         formData.append('file', fileInput);
+        formData.append('type', type);
 
         // Send a POST request to the server to add the book
         const response = await axios.post(
@@ -390,6 +397,7 @@ const updateBook = async (bookId) => {
     const updatedName = prompt("Enter updated book name:");
     const updatedRiter = prompt("Enter updated writer:");
     const updatedDate = prompt("Enter updated date:");
+    const updateType = prompt("enter updated type:")
 
     // Retrieve the access token from session storage
     const token = sessionStorage.getItem("access_token");
@@ -401,7 +409,8 @@ const updateBook = async (bookId) => {
             {
                 name: updatedName,
                 riter: updatedRiter,
-                date: updatedDate
+                date: updatedDate,
+                type: updateType
             },
             {
                 headers: {
@@ -451,16 +460,29 @@ const updateBooksTable = async (booksList) => {
         const lendStatusCell = row.insertCell(4);
         lendStatusCell.textContent = book.lend ? 'Lent' : 'Not Lent';
 
+        const whenCell = row.insertCell(5);
+        if (book.type == 1) {
+            whenCell.textContent = "10 days";
+        } else if (book.type == 2) {
+            whenCell.textContent = "5 days";
+        } else if (book.type == 3) {
+            whenCell.textContent = "2 days";
+        } else {
+            whenCell.textContent = "Unknown"; // Display default text for unknown book types
+        }
+
         // Add cell for lender name
-        const lenderCell = row.insertCell(5);
+        const lenderCell = row.insertCell(6);
         lenderCell.textContent = book.lender; // Display lender name directly
 
+       
+
         // Add cell for return date
-        const returnDateCell = row.insertCell(6);
+        const returnDateCell = row.insertCell(7);
         returnDateCell.textContent = book.return_date || '-'; // Display return date or '-' if not lent
         
         // Add cell for lending button
-        const lendButtonCell = row.insertCell(7);
+        const lendButtonCell = row.insertCell(8);
         const lendButton = document.createElement("button");
         lendButton.textContent = "Lend";
         lendButton.onclick = () => lendBook(book.book_id);
@@ -469,7 +491,7 @@ const updateBooksTable = async (booksList) => {
 
      
          // Add cell for returning button
-         const returnButtonCell = row.insertCell(8);
+         const returnButtonCell = row.insertCell(9);
         const returnButton = document.createElement("button");
         returnButton.textContent = "Return";
         returnButton.onclick = () => returnBook(book.book_id);
@@ -480,7 +502,7 @@ const updateBooksTable = async (booksList) => {
         
 
         // Add cell for delete button
-        const deleteButtonCell = row.insertCell(9);
+        const deleteButtonCell = row.insertCell(10);
         const deleteButton = document.createElement("button");
         deleteButton.textContent = "Delete";
         deleteButton.onclick = () => deleteBook(book.book_id);
@@ -489,7 +511,7 @@ const updateBooksTable = async (booksList) => {
     
     
         // Add cell for update button
-        const updateButtonCell = row.insertCell(10);
+        const updateButtonCell = row.insertCell(11);
         const updateButton = document.createElement("button");
         updateButton.textContent = "Update";
         updateButton.onclick = () => updateBook(book.book_id);

@@ -46,6 +46,7 @@ class Book(db.Model):
     riter = db.Column(db.String(100), nullable=False)
     date = db.Column(db.String(100), nullable=False)
     img = db.Column(db.String(100))
+    type = db.Column(db.Integer, nullable = False)
     lend = db.Column(db.Boolean, default=False)
     userid = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('books', lazy=True))
@@ -140,6 +141,7 @@ def addbook():
     book_name = request.form.get('book_name')
     riter = request.form.get('riter')
     date = request.form.get('date')
+    type = request.form.get('type')
 
     # Get the uploaded file
     file = request.files.get('file')
@@ -151,7 +153,7 @@ def addbook():
         file.save(filepath)
 
         # Create a new book and add it to the database
-        new_book = Book(name=book_name, riter=riter, date=date, img=filename, userid=current_user_id)
+        new_book = Book(name=book_name, riter=riter, date=date, type=type ,img=filename, userid=current_user_id)
         db.session.add(new_book)
         db.session.commit()
 
@@ -180,7 +182,8 @@ def get_books():
                 'riter': book.riter,
                 'date': book.date,
                 'img_url': f"{request.url_root}{BOOK_UPLOAD_FOLDER}/{book.img}",  # Construct image URL
-                'lend': book.lend
+                'lend': book.lend,
+                'type': book.type
             }
             if book.lend:
                 lend_info = Lend.query.filter_by(book_id=book.id).first()
@@ -303,6 +306,8 @@ def register():
     return jsonify({'message': 'User created successfully'}), 201
 
 # Route to lend a book
+from datetime import timedelta
+
 @app.route('/lendbook', methods=['POST'])
 @jwt_required()
 def lend_book():
@@ -319,8 +324,20 @@ def lend_book():
             return jsonify({'error': 'Book is already lent'}), 409
 
         current_time = datetime.datetime.now()
-        return_at1 = current_time + datetime.timedelta(days=7)
-        lend = Lend(user_id=user_id, book_id=book_id, borrowed_at=current_time, return_at=return_at1)
+
+        # Define return date based on book type
+        if book.type == 1:
+            return_days = 10
+        elif book.type == 2:
+            return_days = 5
+        elif book.type == 3:
+            return_days = 2
+        else:
+            return jsonify({'error': 'Invalid book type'}), 400
+
+        return_at = current_time + timedelta(days=return_days)
+
+        lend = Lend(user_id=user_id, book_id=book_id, borrowed_at=current_time, return_at=return_at)
 
         # Add the lend object to the session
         db.session.add(lend)
@@ -336,6 +353,7 @@ def lend_book():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 # Route to get all users
@@ -374,11 +392,15 @@ def update_book(book_id):
         updated_name = request.json.get('name', book_to_update.name)
         updated_riter = request.json.get('riter', book_to_update.riter)
         updated_date = request.json.get('date', book_to_update.date)
+        updated_type = request.json.get('type', book_to_update.type)
+
 
         # Update the book details
         book_to_update.name = updated_name
         book_to_update.riter = updated_riter
         book_to_update.date = updated_date
+        book_to_update.type = updated_type
+
 
         # Commit changes to the database
         db.session.commit()
