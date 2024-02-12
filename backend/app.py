@@ -173,6 +173,8 @@ from flask import request, jsonify
 @app.route('/getbooks', methods=['GET'])
 def get_books():
     try:
+        current_time = datetime.datetime.now()
+        formatted_date = current_time.strftime("%Y-%m-%d")
         books = Book.query.all()
         books_list = []
         for book in books:
@@ -183,7 +185,8 @@ def get_books():
                 'date': book.date,
                 'img_url': f"{request.url_root}{BOOK_UPLOAD_FOLDER}/{book.img}",  # Construct image URL
                 'lend': book.lend,
-                'type': book.type
+                'type': book.type,
+                'currenttime': formatted_date
             }
             if book.lend:
                 lend_info = Lend.query.filter_by(book_id=book.id).first()

@@ -43,7 +43,7 @@
             background-color: #fff;
             border-radius: 5px;
             box-shadow: 0 10px 4px rgba(0, 0, 0, 0.1);
-            max-width: 900px; /* Adjusted container width */
+            max-width: 1300px; /* Adjusted container width */
         }
 
         .form-group {
@@ -243,7 +243,6 @@
             </thead>
             <tbody id="booksTableBody"></tbody>
         </table>
-        <h2>You have 1 Week To Return The Book You Borrowed</h2>
     </div>
 </div>
 
@@ -480,7 +479,11 @@ const updateBooksTable = async (booksList) => {
         // Add cell for return date
         const returnDateCell = row.insertCell(7);
         returnDateCell.textContent = book.return_date || '-'; // Display return date or '-' if not lent
+        if (book.return_date < book.currenttime) {
+            returnDateCell.textContent += " - late";
+}
         
+
         // Add cell for lending button
         const lendButtonCell = row.insertCell(8);
         const lendButton = document.createElement("button");
@@ -520,6 +523,7 @@ const updateBooksTable = async (booksList) => {
         
     }
 };
+
 
 
 
@@ -702,6 +706,7 @@ const deleteUser = async (userId) => {
             } catch (error) {
                 console.error('Error during registration:', error);
             }
+            
         };
     </script>
 </body>
