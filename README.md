@@ -30,6 +30,12 @@ The Library Management System is a web-based application designed to manage book
    Ensure you have Python and Flask installed. Install the required Python packages using pip:
    ```bash
    pip install -r requirements.txt
+   pip install jwt
+   pip installflask
+   pip install flask_sqlalchemy
+   pip install flask_cors
+   pip install flask_bcrypt
+   pip install flask_jwt_extended
    ```
 
 4. **Run the Application:**
